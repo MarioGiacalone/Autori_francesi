@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz: Autori Francesi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f8f8f8;
+    }
+    img {
+      max-width: 300px;
+      height: auto;
+      border-radius: 10px;
+      margin: 20px 0;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    select, input[type="text"] {
+      font-size: 18px;
+      padding: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    #scoreboard {
+      margin-top: 30px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>👨‍🏫 Indovina l'autore francese</h1>
+
+  <div>
+    <label for="difficulty">Scegli la difficoltà:</label>
+    <select id="difficulty">
+      <option value="easy">Facile (Scelta multipla)</option>
+      <option value="hard">Difficile (Scrivi il nome)</option>
+    </select>
+    <button onclick="startGame()">Inizia il gioco</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <img id="author-img" src="" alt="Foto autore">
+    <div id="answer-area"></div>
+    <button onclick="checkAnswer()">Verifica</button>
+    <div id="feedback"></div>
+    <div id="scoreboard"></div>
+  </div>
+
+ <script>
+  const images = [
+    "Alphonse_de_Lamartine.png",
+    "barbusse.jpg",
+    "breton.jpeg",
+    "Camus Harcourt.jpg",
+    "Charles Baudelaire.jpg",
+    "Chateaubriand.png",
+    "Gustave flaubert.jpeg",
+    "honore-de-balzac.jpg",
+    "Huysmans.jpg",
+    "Jean-Paul Sartre.jpeg",
+    "madame de stael.jpeg",
+    "musset_landelle.jpg",
+    "verlaine.jpg",
+    "Victor Hugo.jpg",
+    "Émile Zola.jpeg"
+  ];
+
+  const imageToAuthor = {
+    "Alphonse_de_Lamartine.png": "Alphonse de Lamartine",
+    "barbusse.jpg": "Henri Barbusse",
+    "breton.jpeg": "André Breton",
+    "Camus Harcourt.jpg": "Albert Camus",
+    "Charles Baudelaire.jpg": "Charles Baudelaire",
+    "Chateaubriand.png": "François-René de Chateaubriand",
+    "Gustave flaubert.jpeg": "Gustave Flaubert",
+    "honore-de-balzac.jpg": "Honoré de Balzac",
+    "Huysmans.jpg": "Joris-Karl Huysmans",
+    "Jean-Paul Sartre.jpeg": "Jean-Paul Sartre",
+    "madame de stael.jpeg": "Madame de Staël",
+    "musset_landelle.jpg": "Alfred de Musset",
+    "verlaine.jpg": "Paul Verlaine",
+    "Victor Hugo.jpg": "Victor Hugo",
+    "Émile Zola.jpeg": "Émile Zola"
+  };
+
+  let currentImage = "";
+  let correct = 0;
+  let errors = 0;
+  let mode = "easy";
+
+  function startGame() {
+    correct = 0;
+    errors = 0;
+    mode = document.getElementById("difficulty").value;
+    document.getElementById("game").style.display = "block";
+    document.getElementById("feedback").innerText = "";
+    nextRound();
+  }
+
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  function normalizeString(str) {
+    return str
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/gi, "");
+  }
+
+  function nextRound() {
+    const random = Math.floor(Math.random() * images.length);
+    currentImage = images[random];
+    document.getElementById("author-img").src = "Francese/" + currentImage;
+
+    const answerArea = document.getElementById("answer-area");
+    answerArea.innerHTML = "";
+
+    if (mode === "easy") {
+      const select = document.createElement("select");
+      const options = shuffle([...images]).slice(0, 4);
+      if (!options.includes(currentImage)) options[0] = currentImage;
+      shuffle(options).forEach(img => {
+        const opt = document.createElement("option");
+        opt.value = img;
+        opt.text = imageToAuthor[img];
+        select.appendChild(opt);
+      });
+      select.id = "user-answer";
+      answerArea.appendChild(select);
+    } else {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Scrivi il nome esatto...";
+      input.id = "user-answer";
+      answerArea.appendChild(input);
+    }
+
+    updateScore();
+  }
+
+  function checkAnswer() {
+  let userInput = "";
+  const correctName = imageToAuthor[currentImage];
+
+  if (mode === "easy") {
+    const select = document.getElementById("user-answer");
+    const selectedFile = select.value; // es. "Victor Hugo.jpg"
+    userInput = imageToAuthor[selectedFile]; // recupera il nome corretto
+  } else {
+    userInput = document.getElementById("user-answer").value;
+  }
+
+  const normalizedInput = normalizeString(userInput);
+  const normalizedCorrect = normalizeString(correctName);
+
+  if (normalizedInput === normalizedCorrect) {
+    correct++;
+    document.getElementById("feedback").innerText = "✅ Corretto!";
+  } else {
+    errors++;
+    document.getElementById("feedback").innerText = `❌ Sbagliato. Era: ${correctName}`;
+  }
+
+  setTimeout(() => {
+    document.getElementById("feedback").innerText = "";
+    nextRound();
+  }, 1500);
+
+  updateScore();
+}
+
+
+  function updateScore() {
+    const total = correct + errors;
+    const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
+    document.getElementById("scoreboard").innerText =
+      `✔️ Corrette: ${correct} | ❌ Errori: ${errors} | 🎯 Precisione: ${percent}%`;
+  }
+</script>
+
+</body>
+</html>
